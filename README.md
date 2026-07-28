@@ -2,11 +2,16 @@
 
 These are some of the first projects I built while teaching myself Python.
 
-## Calculator
-A simple calculator that can perform basic arithmetic operations (addition, subtraction, multiplication, and division).
+## 1. Calculator
+A simple calculator that can perform:
+- Addition
+- Subtraction
+- Multiplication
+- Division
+- Percentage
 
-## Quiz App
-A quiz application that asks questions and checks the user's answers.
+## 2. Quiz App
+A quiz application with multiple-choice questions. It checks answers and shows the final score.
 
-I created both projects on SoloLearn as I was learning to code.# person-project-
-Self-taught Python projects: Calculator and Quiz App
+## 3. Number Guessing Game
+A more advanced game with difficulty levels (Easy, Medium, Hard), limited attempts, and input validation.
