@@ -1,0 +1,761 @@
+import random
+import json
+import os
+import time
+
+# ============================================================
+#                    ETERNAL REALMS RPG
+# ============================================================
+
+GAME_TITLE = "ETERNAL REALMS: THE LOST CROWN"
+SAVE_FILE = "eternal_realms_save.json"
+
+# ============================================================
+#                    UTILITY FUNCTIONS
+# ============================================================
+
+def clear():
+    os.system("cls" if os.name == "nt" else "clear")
+
+
+def pause(seconds=1):
+    time.sleep(seconds)
+
+
+def slow_print(text, delay=0.01):
+    for character in text:
+        print(character, end="", flush=True)
+        time.sleep(delay)
+    print()
+
+
+def divider():
+    print("=" * 70)
+
+
+def ask_choice(prompt, choices):
+    while True:
+        answer = input(prompt).strip().lower()
+
+        if answer in choices:
+            return answer
+
+        print("Invalid choice. Try again.")
+
+
+# ============================================================
+#                         ITEMS
+# ============================================================
+
+ITEMS = {
+    "health_potion": {
+        "name": "Health Potion",
+        "type": "consumable",
+        "price": 30,
+        "description": "Restores 35 HP."
+    },
+
+    "mega_health_potion": {
+        "name": "Mega Health Potion",
+        "type": "consumable",
+        "price": 80,
+        "description": "Restores 90 HP."
+    },
+
+    "mana_potion": {
+        "name": "Mana Potion",
+        "type": "consumable",
+        "price": 40,
+        "description": "Restores 40 MP."
+    },
+
+    "iron_sword": {
+        "name": "Iron Sword",
+        "type": "weapon",
+        "price": 120,
+        "attack": 8,
+        "description": "A reliable sword."
+    },
+
+    "steel_sword": {
+        "name": "Steel Sword",
+        "type": "weapon",
+        "price": 300,
+        "attack": 18,
+        "description": "A powerful steel blade."
+    },
+
+    "dragon_blade": {
+        "name": "Dragon Blade",
+        "type": "weapon",
+        "price": 1000,
+        "attack": 40,
+        "description": "A legendary blade forged from dragon metal."
+    },
+
+    "leather_armor": {
+        "name": "Leather Armor",
+        "type": "armor",
+        "price": 100,
+        "defense": 5,
+        "description": "Basic protection."
+    },
+
+    "steel_armor": {
+        "name": "Steel Armor",
+        "type": "armor",
+        "price": 350,
+        "defense": 15,
+        "description": "Heavy protective armor."
+    },
+
+    "dragon_armor": {
+        "name": "Dragon Armor",
+        "type": "armor",
+        "price": 1200,
+        "defense": 35,
+        "description": "Armor made from ancient dragon scales."
+    }
+}
+
+
+# ============================================================
+#                         ENEMIES
+# ============================================================
+
+ENEMIES = [
+    {
+        "name": "Goblin",
+        "level": 1,
+        "hp": 45,
+        "attack": 8,
+        "defense": 2,
+        "xp": 25,
+        "gold": 20
+    },
+
+    {
+        "name": "Wolf",
+        "level": 2,
+        "hp": 60,
+        "attack": 12,
+        "defense": 3,
+        "xp": 35,
+        "gold": 25
+    },
+
+    {
+        "name": "Bandit",
+        "level": 3,
+        "hp": 80,
+        "attack": 15,
+        "defense": 5,
+        "xp": 50,
+        "gold": 40
+    },
+
+    {
+        "name": "Skeleton",
+        "level": 4,
+        "hp": 95,
+        "attack": 18,
+        "defense": 7,
+        "xp": 65,
+        "gold": 50
+    },
+
+    {
+        "name": "Orc",
+        "level": 5,
+        "hp": 140,
+        "attack": 24,
+        "defense": 10,
+        "xp": 90,
+        "gold": 75
+    },
+
+    {
+        "name": "Dark Knight",
+        "level": 7,
+        "hp": 200,
+        "attack": 32,
+        "defense": 18,
+        "xp": 150,
+        "gold": 120
+    },
+
+    {
+        "name": "Demon",
+        "level": 10,
+        "hp": 300,
+        "attack": 45,
+        "defense": 25,
+        "xp": 300,
+        "gold": 250
+    }
+]
+
+
+# ============================================================
+#                           PLAYER
+# ============================================================
+
+class Player:
+
+    def __init__(self, name, character_class):
+
+        self.name = name
+        self.character_class = character_class
+
+        self.level = 1
+        self.xp = 0
+        self.xp_required = 100
+
+        self.max_hp = 100
+        self.hp = 100
+
+        self.max_mp = 50
+        self.mp = 50
+
+        self.base_attack = 10
+        self.base_defense = 5
+
+        self.gold = 150
+
+        self.inventory = {
+            "health_potion": 3,
+            "mana_potion": 2
+        }
+
+        self.weapon = None
+        self.armor = None
+
+        self.quests = {
+            "goblin_hunt": False,
+            "dark_knight": False,
+            "lost_crown": False
+        }
+
+        self.kills = 0
+
+        self.apply_class_bonus()
+
+    # --------------------------------------------------------
+
+    def apply_class_bonus(self):
+
+        if self.character_class == "warrior":
+            self.max_hp += 40
+            self.hp = self.max_hp
+            self.base_attack += 5
+            self.base_defense += 5
+
+        elif self.character_class == "mage":
+            self.max_mp += 70
+            self.mp = self.max_mp
+            self.base_attack += 10
+
+        elif self.character_class == "rogue":
+            self.base_attack += 8
+            self.base_defense += 3
+
+        elif self.character_class == "paladin":
+            self.max_hp += 25
+            self.hp = self.max_hp
+            self.base_defense += 10
+
+    # --------------------------------------------------------
+
+    def attack_power(self):
+
+        weapon_attack = 0
+
+        if self.weapon:
+            weapon_attack = ITEMS[self.weapon].get("attack", 0)
+
+        return self.base_attack + weapon_attack
+
+    # --------------------------------------------------------
+
+    def defense_power(self):
+
+        armor_defense = 0
+
+        if self.armor:
+            armor_defense = ITEMS[self.armor].get("defense", 0)
+
+        return self.base_defense + armor_defense
+
+    # --------------------------------------------------------
+
+    def gain_xp(self, amount):
+
+        print(f"\n⭐ You gained {amount} XP!")
+
+        self.xp += amount
+
+        while self.xp >= self.xp_required:
+
+            self.xp -= self.xp_required
+            self.level_up()
+
+    # --------------------------------------------------------
+
+    def level_up(self):
+
+        self.level += 1
+
+        self.xp_required = int(self.xp_required * 1.35)
+
+        self.max_hp += 20
+        self.max_mp += 10
+
+        self.hp = self.max_hp
+        self.mp = self.max_mp
+
+        self.base_attack += 3
+        self.base_defense += 2
+
+        print()
+        divider()
+        print(f"🎉 LEVEL UP!")
+        print(f"You are now level {self.level}!")
+        print("+20 Maximum HP")
+        print("+10 Maximum MP")
+        print("+3 Attack")
+        print("+2 Defense")
+        divider()
+
+    # --------------------------------------------------------
+
+    def heal_full(self):
+
+        self.hp = self.max_hp
+        self.mp = self.max_mp
+
+
+# ============================================================
+#                         GAME ENGINE
+# ============================================================
+
+class Game:
+
+    def __init__(self):
+
+        self.player = None
+        self.running = True
+
+    # --------------------------------------------------------
+
+    def start(self):
+
+        clear()
+
+        divider()
+        print("⚔️  ETERNAL REALMS")
+        print("      THE LOST CROWN")
+        divider()
+
+        print("\n1. New Game")
+        print("2. Load Game")
+        print("3. Exit")
+
+        choice = ask_choice(
+            "\nChoose: ",
+            ["1", "2", "3"]
+        )
+
+        if choice == "1":
+            self.create_character()
+
+        elif choice == "2":
+            if self.load_game():
+                self.main_loop()
+
+        else:
+            print("Goodbye!")
+
+    # --------------------------------------------------------
+
+    def create_character(self):
+
+        clear()
+
+        print("CREATE YOUR HERO")
+        divider()
+
+        name = input("Enter your name: ").strip()
+
+        while not name:
+            name = input("Name cannot be empty: ").strip()
+
+        print("\nChoose your class:\n")
+
+        print("1. Warrior")
+        print("   High HP and strong physical attacks.")
+
+        print("\n2. Mage")
+        print("   Huge mana pool and powerful magic.")
+
+        print("\n3. Rogue")
+        print("   Fast and deadly.")
+
+        print("\n4. Paladin")
+        print("   Extremely defensive holy warrior.")
+
+        choice = ask_choice(
+            "\nClass: ",
+            ["1", "2", "3", "4"]
+        )
+
+        classes = {
+            "1": "warrior",
+            "2": "mage",
+            "3": "rogue",
+            "4": "paladin"
+        }
+
+        character_class = classes[choice]
+
+        self.player = Player(
+            name,
+            character_class
+        )
+
+        clear()
+
+        slow_print(
+            f"\nWelcome, {self.player.name}."
+        )
+
+        pause()
+
+        slow_print(
+            "\nYour journey begins in the kingdom of Eldoria..."
+        )
+
+        pause(2)
+
+        self.introduction()
+
+        self.main_loop()
+
+    # --------------------------------------------------------
+
+    def introduction(self):
+
+        clear()
+
+        divider()
+
+        slow_print(
+            "For one thousand years, Eldoria was protected by "
+            "the legendary Crown of Aether."
+        )
+
+        slow_print(
+            "\nThe crown was said to possess enough power "
+            "to control the ancient elements."
+        )
+
+        slow_print(
+            "\nBut three nights ago..."
+        )
+
+        pause(1)
+
+        slow_print(
+            "\nThe crown disappeared."
+        )
+
+        slow_print(
+            "\nThe king's guards searched the entire castle."
+        )
+
+        slow_print(
+            "\nThey found only one clue:"
+        )
+
+        print("\nA black feather covered in strange blue dust.")
+
+        pause(2)
+
+        slow_print(
+            "\nThe king believes the crown was stolen by "
+            "the mysterious Dark Order."
+        )
+
+        slow_print(
+            "\nAnd now..."
+        )
+
+        slow_print(
+            "\nYou have been chosen to find it."
+        )
+
+        input("\nPress ENTER to continue...")
+
+    # ========================================================
+    #                         MAIN LOOP
+    # ========================================================
+
+    def main_loop(self):
+
+        while self.running:
+
+            clear()
+
+            print(f"⚔️ {self.player.name}")
+            print(
+                f"Level {self.player.level} "
+                f"| HP {self.player.hp}/{self.player.max_hp} "
+                f"| MP {self.player.mp}/{self.player.max_mp}"
+            )
+
+            divider()
+
+            print("1. Explore")
+            print("2. Character")
+            print("3. Inventory")
+            print("4. Shop")
+            print("5. Quests")
+            print("6. Save Game")
+            print("7. Exit")
+
+            choice = ask_choice(
+                "\nChoose: ",
+                ["1", "2", "3", "4", "5", "6", "7"]
+            )
+
+            if choice == "1":
+                self.explore()
+
+            elif choice == "2":
+                self.character_screen()
+
+            elif choice == "3":
+                self.inventory_screen()
+
+            elif choice == "4":
+                self.shop()
+
+            elif choice == "5":
+                self.quest_screen()
+
+            elif choice == "6":
+                self.save_game()
+
+            elif choice == "7":
+                print("\nThanks for playing!")
+                self.running = False
+
+    # ========================================================
+    #                         EXPLORE
+    # ========================================================
+
+    def explore(self):
+
+        clear()
+
+        print("🌲 THE WILDERNESS")
+        divider()
+
+        print("You walk deeper into the wilderness...")
+
+        pause(1)
+
+        event = random.randint(1, 100)
+
+        if event <= 50:
+
+            enemy = random.choice(ENEMIES)
+
+            enemy = enemy.copy()
+
+            scale = max(0, self.player.level - enemy["level"])
+
+            enemy["hp"] += scale * 15
+            enemy["attack"] += scale * 3
+            enemy["defense"] += scale * 2
+
+            self.battle(enemy)
+
+        elif event <= 70:
+
+            gold = random.randint(20, 100)
+
+            print(
+                f"\n💰 You found {gold} gold hidden under a rock!"
+            )
+
+            self.player.gold += gold
+
+        elif event <= 85:
+
+            item = random.choice([
+                "health_potion",
+                "mana_potion"
+            ])
+
+            print(
+                f"\n🎁 You found a {ITEMS[item]['name']}!"
+            )
+
+            self.add_item(item)
+
+        elif event <= 95:
+
+            print("\n🏚️ You discovered an abandoned cabin.")
+
+            self.random_cabin()
+
+        else:
+
+            print("\n✨ A mysterious portal appears!")
+
+            self.secret_area()
+
+        input("\nPress ENTER to continue...")
+
+    # ========================================================
+    #                         BATTLE
+    # ========================================================
+
+    def battle(self, enemy):
+
+        clear()
+
+        print(f"👹 A {enemy['name']} appeared!")
+        divider()
+
+        enemy_hp = enemy["hp"]
+
+        while enemy_hp > 0 and self.player.hp > 0:
+
+            print()
+            print(
+                f"{self.player.name}: "
+                f"{self.player.hp}/{self.player.max_hp} HP"
+            )
+
+            print(
+                f"{enemy['name']}: "
+                f"{enemy_hp}/{enemy['hp']} HP"
+            )
+
+            print("\n1. Attack")
+            print("2. Magic")
+            print("3. Use Item")
+            print("4. Run")
+
+            choice = ask_choice(
+                "\nAction: ",
+                ["1", "2", "3", "4"]
+            )
+
+            # ------------------------------------------------
+            # ATTACK
+            # ------------------------------------------------
+
+            if choice == "1":
+
+                damage = random.randint(
+                    max(1, self.player.attack_power() - 5),
+                    self.player.attack_power() + 5
+                )
+
+                damage -= enemy["defense"]
+
+                damage = max(1, damage)
+
+                critical = random.random() < 0.15
+
+                if critical:
+
+                    damage *= 2
+
+                    print("\n💥 CRITICAL HIT!")
+
+                print(
+                    f"\nYou dealt {damage} damage!"
+                )
+
+                enemy_hp -= damage
+
+            # ------------------------------------------------
+            # MAGIC
+            # ------------------------------------------------
+
+            elif choice == "2":
+
+                if self.player.mp < 15:
+
+                    print("\n❌ Not enough MP.")
+
+                    continue
+
+                self.player.mp -= 15
+
+                damage = random.randint(
+                    20,
+                    40
+                )
+
+                damage += self.player.level * 3
+
+                print(
+                    f"\n✨ You cast Arcane Blast!"
+                )
+
+                print(
+                    f"You dealt {damage} magic damage!"
+                )
+
+                enemy_hp -= damage
+
+            # ------------------------------------------------
+            # ITEM
+            # ------------------------------------------------
+
+            elif choice == "3":
+
+                self.use_item_in_battle()
+
+            # ------------------------------------------------
+            # RUN
+            # ------------------------------------------------
+
+            elif choice == "4":
+
+                if random.random() < 0.6:
+
+                    print("\n🏃 You escaped!")
+
+                    return
+
+                else:
+
+                    print(
+                        "\n❌ You failed to escape!"
+                    )
+
+            # ------------------------------------------------
+            # ENEMY TURN
+            # ------------------------------------------------
+
+            if enemy_hp > 0:
+
+                enemy_damage = random.randint(
+                    max(1, enemy["attack"] - 5),
+                    enemy["attack"] + 5
+                )
+
+                enemy_damage -= self.player.defense_power()
+
+                enemy_damage = max(
+                    1,
+                    enemy_damage
+                )
+
+                print(
+                    f"\n👹 {enemy['name']}
