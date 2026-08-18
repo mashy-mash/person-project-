@@ -1,0 +1,52 @@
+import random
+
+questions = [
+    {
+        "q": "What is the SI unit of force?",
+        "options": ["Joule", "Newton", "Watt", "Pascal"],
+        "answer": "Newton"
+    },
+    {
+        "q": "What is 12 × 8?",
+        "options": ["86", "96", "108", "112"],
+        "answer": "96"
+    },
+    {
+        "q": "What is the chemical symbol for oxygen?",
+        "options": ["Ox", "O", "Og", "C"],
+        "answer": "O"
+    },
+    {
+        "q": "What is the square root of 144?",
+        "options": ["10", "11", "12", "14"],
+        "answer": "12"
+    }
+]
+
+def quiz():
+    random.shuffle(questions)
+    score = 0
+
+    for number, q in enumerate(questions, 1):
+        print(f"\nQuestion {number}: {q['q']}")
+
+        for i, option in enumerate(q["options"], 1):
+            print(f"{i}. {option}")
+
+        try:
+            choice = int(input("Answer: "))
+            answer = q["options"][choice - 1]
+        except (ValueError, IndexError):
+            print("Invalid answer.")
+            continue
+
+        if answer == q["answer"]:
+            print("✅ Correct!")
+            score += 1
+        else:
+            print(f"❌ Wrong! Answer: {q['answer']}")
+
+    print(f"\n🏆 Final Score: {score}/{len(questions)}")
+    print(f"Accuracy: {score / len(questions) * 100:.0f}%")
+
+quiz()
