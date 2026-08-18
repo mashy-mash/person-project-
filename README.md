@@ -16,5 +16,5 @@ A quiz application with multiple-choice questions. It checks answers and shows t
 ## 3. Number Guessing Game
 A more advanced game with difficulty levels (Easy, Medium, Hard), limited attempts, and input validation.
 
-##4. Rpg game code
+## 4. Rpg game code
 my starting prompt for rpg game
