@@ -1,0 +1,113 @@
+# SUBJECT MANAGEMENT SYSTEM
+
+subjects = {}
+
+
+def add_subject():
+    name = input("Enter subject name: ").strip()
+
+    if name in subjects:
+        print("Subject already exists.")
+        return
+
+    teacher = input("Enter teacher name: ").strip()
+    difficulty = input("Difficulty (Easy/Medium/Hard): ").strip()
+
+    subjects[name] = {
+        "teacher": teacher,
+        "difficulty": difficulty,
+        "topics": [],
+        "completed": 0
+    }
+
+    print(f"{name} added successfully!")
+
+
+def remove_subject():
+    name = input("Enter subject to remove: ").strip()
+
+    if name in subjects:
+        del subjects[name]
+        print("Subject removed.")
+    else:
+        print("Subject not found.")
+
+
+def add_topic():
+    name = input("Enter subject: ").strip()
+
+    if name not in subjects:
+        print("Subject not found.")
+        return
+
+    topic = input("Enter topic/chapter: ").strip()
+
+    subjects[name]["topics"].append({
+        "name": topic,
+        "completed": False
+    })
+
+    print("Topic added!")
+
+
+def complete_topic():
+    name = input("Enter subject: ").strip()
+
+    if name not in subjects:
+        print("Subject not found.")
+        return
+
+    topics = subjects[name]["topics"]
+
+    if not topics:
+        print("This subject has no topics.")
+        return
+
+    for i, topic in enumerate(topics, 1):
+        status = "✓" if topic["completed"] else " "
+        print(f"{i}. [{status}] {topic['name']}")
+
+    try:
+        choice = int(input("Choose topic: "))
+        topics[choice - 1]["completed"] = True
+        print("Topic completed!")
+    except (ValueError, IndexError):
+        print("Invalid choice.")
+
+
+def view_subjects():
+    if not subjects:
+        print("No subjects added.")
+        return
+
+    print("\n========== YOUR SUBJECTS ==========")
+
+    for name, data in subjects.items():
+
+        total = len(data["topics"])
+
+        completed = sum(
+            topic["completed"]
+            for topic in data["topics"]
+        )
+
+        if total > 0:
+            progress = completed / total * 100
+        else:
+            progress = 0
+
+        print(f"\n📚 {name}")
+        print(f"Teacher: {data['teacher']}")
+        print(f"Difficulty: {data['difficulty']}")
+        print(f"Progress: {progress:.1f}%")
+        print(f"Topics: {completed}/{total}")
+
+
+def main():
+
+    while True:
+
+        print("\n========== SUBJECT MANAGER ==========")
+        print("1. Add subject")
+        print("2. Remove subject")
+        print("3. Add topic")
