@@ -1,6 +1,6 @@
 # My Projects
 
-These are some of the first projects I built while teaching myself Python.
+I'm a self-taught developer from Nigeria building my way into tech. This repo tracks my progression from basic scripts to more structured, feature-rich programs as I learn. Each project reflects a skill I was practicing — logic, state management, user input handling — and I'm currently working toward adding persistent storage and interfaces.
 
 ## 1. Calculator
 A simple calculator that can perform:
